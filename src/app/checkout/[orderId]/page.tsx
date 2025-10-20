@@ -6,7 +6,6 @@ import {
   CreditCard,
   Building,
   Loader2,
-  CheckCircle,
   XCircle,
 } from 'lucide-react';
 
@@ -81,7 +80,7 @@ export default function CheckoutPage() {
         // Redirect to failed page
         router.push(`/checkout/failed/${orderId}`);
       }
-    } catch (err) {
+    } catch {
       setStatus('failed');
       router.push(`/checkout/failed/${orderId}`);
     }
@@ -92,7 +91,7 @@ export default function CheckoutPage() {
   // Loading spinner while fetching amount
   if (status === 'loading' && amount === null) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <Loader2 className="w-12 h-12 animate-spin text-accent" />
       </div>
     );
@@ -101,13 +100,13 @@ export default function CheckoutPage() {
   // Error state (e.g., order not found or already paid)
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="p-8 text-center bg-white rounded-2xl shadow-lg">
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="p-8 text-center bg-white rounded-2xl shadow-lg border border-gray-200">
           <XCircle className="w-16 h-16 mx-auto text-status-error" />
-          <h2 className="mt-4 text-2xl font-bold text-text-light-primary">
+          <h2 className="mt-4 text-2xl font-bold text-gray-900">
             Payment Error
           </h2>
-          <p className="mt-2 text-text-light-secondary">{error}</p>
+          <p className="mt-2 text-gray-700">{error}</p>
           <button
             onClick={() => router.push('/')}
             className="mt-6 px-4 py-2 font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
@@ -121,15 +120,15 @@ export default function CheckoutPage() {
 
   // Main Payment UI
   return (
-    <div className="flex items-center justify-center min-h-screen bg-secondary/30 backdrop-blur-sm">
-      <div className="w-full max-w-md p-8 bg-primary-light rounded-2xl shadow-lg">
-        <h2 className="text-xl font-semibold text-center text-text-light-secondary">
+    <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+        <h2 className="text-xl font-semibold text-center text-gray-900">
           ZeroPay Checkout
         </h2>
-        <p className="mt-2 text-4xl font-bold text-center text-text-light-primary">
+        <p className="mt-2 text-4xl font-bold text-center text-gray-900">
           ₹{amount?.toFixed(2)}
         </p>
-        <p className="mt-1 text-sm text-center text-text-light-secondary">
+        <p className="mt-1 text-sm text-center text-gray-700">
           Order ID: {orderId.substring(0, 18)}...
         </p>
 
@@ -139,8 +138,8 @@ export default function CheckoutPage() {
             onClick={() => setMethod('card')}
             className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
               method === 'card'
-                ? 'bg-white shadow-sm text-text-light-primary'
-                : 'text-text-light-secondary hover:bg-gray-200'
+                ? 'bg-white shadow-sm text-gray-900'
+                : 'text-gray-700 hover:bg-gray-200'
             }`}
           >
             Card
@@ -149,8 +148,8 @@ export default function CheckoutPage() {
             onClick={() => setMethod('upi')}
             className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
               method === 'upi'
-                ? 'bg-white shadow-sm text-text-light-primary'
-                : 'text-text-light-secondary hover:bg-gray-200'
+                ? 'bg-white shadow-sm text-gray-900'
+                : 'text-gray-700 hover:bg-gray-200'
             }`}
           >
             UPI / Wallet
@@ -165,7 +164,7 @@ export default function CheckoutPage() {
               <div>
                 <label
                   htmlFor="card-number"
-                  className="block mb-1 text-sm font-medium text-text-light-secondary"
+                  className="block mb-1 text-sm font-medium text-gray-900"
                 >
                   Card Number
                 </label>
@@ -175,7 +174,7 @@ export default function CheckoutPage() {
                     type="text"
                     required
                     defaultValue="4242 4242 4242 4242" // Mock data
-                    className="w-full px-4 py-3 rounded-lg bg-light-background border border-gray-300 text-text-light-primary placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent"
+                    className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent"
                   />
                   <CreditCard className="absolute w-5 h-5 top-3.5 right-4 text-gray-400" />
                 </div>
@@ -184,7 +183,7 @@ export default function CheckoutPage() {
                 <div>
                   <label
                     htmlFor="expiry"
-                    className="block mb-1 text-sm font-medium text-text-light-secondary"
+                    className="block mb-1 text-sm font-medium text-gray-900"
                   >
                     Expiry (MM/YY)
                   </label>
@@ -193,13 +192,13 @@ export default function CheckoutPage() {
                     type="text"
                     required
                     defaultValue="12/28" // Mock data
-                    className="w-full px-4 py-3 rounded-lg bg-light-background border border-gray-300 text-text-light-primary placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent"
+                    className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent"
                   />
                 </div>
                 <div>
                   <label
                     htmlFor="cvc"
-                    className="block mb-1 text-sm font-medium text-text-light-secondary"
+                    className="block mb-1 text-sm font-medium text-gray-900"
                   >
                     CVC
                   </label>
@@ -208,7 +207,7 @@ export default function CheckoutPage() {
                     type="text"
                     required
                     defaultValue="123" // Mock data
-                    className="w-full px-4 py-3 rounded-lg bg-light-background border border-gray-300 text-text-light-primary placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent"
+                    className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent"
                   />
                 </div>
               </div>
@@ -220,7 +219,7 @@ export default function CheckoutPage() {
               {/* UPI Details */}
               <label
                 htmlFor="upi-id"
-                className="block mb-1 text-sm font-medium text-text-light-secondary"
+                className="block mb-1 text-sm font-medium text-gray-900"
               >
                 Enter UPI ID
               </label>
@@ -230,7 +229,7 @@ export default function CheckoutPage() {
                   type="text"
                   required
                   defaultValue="developer@zeropay" // Mock data
-                  className="w-full px-4 py-3 rounded-lg bg-light-background border border-gray-300 text-text-light-primary placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent"
+                  className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent"
                 />
                 <Building className="absolute w-5 h-5 top-3.5 right-4 text-gray-400" />
               </div>
@@ -242,7 +241,7 @@ export default function CheckoutPage() {
             <button
               type="submit"
               disabled={status === 'loading'}
-              className="w-full px-4 py-3 font-medium text-primary-dark bg-accent rounded-lg shadow-md transition-all duration-300 hover:bg-emerald-400 active:scale-95 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="w-full px-4 py-3 font-medium text-white bg-accent rounded-lg shadow-md transition-all duration-300 hover:bg-emerald-400 active:scale-95 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               {status === 'loading' ? (
                 <Loader2 className="w-6 h-6 mx-auto animate-spin" />

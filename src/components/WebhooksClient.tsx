@@ -109,7 +109,7 @@ export default function WebhooksClient({
             ))
           ) : (
             <p className="text-sm text-center text-text-light-secondary">
-              You haven't added any webhook endpoints yet.
+              You haven&apos;t added any webhook endpoints yet.
             </p>
           )}
         </div>

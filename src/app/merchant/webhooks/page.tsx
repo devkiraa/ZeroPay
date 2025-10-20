@@ -2,7 +2,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import dbConnect from '@/lib/dbConnect';
-import Webhook, { IWebhook } from '@/models/Webhook';
+import Webhook from '@/models/Webhook';
 import WebhooksClient from '@/components/WebhooksClient';
 import { ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies';
 

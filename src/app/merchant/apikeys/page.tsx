@@ -2,7 +2,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import dbConnect from '@/lib/dbConnect';
-import Merchant, { IMerchant } from '@/models/Merchant';
+import Merchant from '@/models/Merchant';
 import ApiKeysClient from '@/components/ApiKeysClient';
 import { ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies'; // Import type
 

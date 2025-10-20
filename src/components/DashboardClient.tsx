@@ -91,7 +91,6 @@ function DashboardChart() {
 
 // This is our main Client Component (Light Theme)
 export default function DashboardClient({
-  merchant,
   transactions,
   analytics,
 }: DashboardClientProps) {

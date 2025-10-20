@@ -4,10 +4,15 @@ import mongoose from 'mongoose';
 // In a serverless environment (like Next.js API routes),
 // the connection might be re-established on each function invocation.
 // Caching it avoids this performance hit.
-let cached = (global as any).mongoose;
+interface CachedConnection {
+  conn: typeof mongoose | null;
+  promise: Promise<typeof mongoose> | null;
+}
+
+let cached = (global as { mongoose?: CachedConnection }).mongoose;
 
 if (!cached) {
-  cached = (global as any).mongoose = { conn: null, promise: null };
+  cached = (global as { mongoose: CachedConnection }).mongoose = { conn: null, promise: null };
 }
 
 async function dbConnect() {
