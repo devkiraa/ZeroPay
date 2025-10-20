@@ -8,6 +8,7 @@ import {
   Loader2,
   XCircle,
 } from 'lucide-react';
+import { QRCodeCanvas } from 'qrcode.react';
 
 type TransactionStatus = 'pending' | 'success' | 'failed' | 'loading';
 type PaymentMethod = 'card' | 'upi';
@@ -215,7 +216,32 @@ export default function CheckoutPage() {
           )}
 
           {method === 'upi' && (
-            <div>
+            <div className="space-y-4">
+              {/* QR Code */}
+              <div className="flex flex-col items-center py-4">
+                <p className="mb-4 text-sm font-medium text-gray-900">
+                  Scan QR Code to Pay
+                </p>
+                <div className="p-4 bg-white rounded-lg border-2 border-gray-200">
+                  <QRCodeCanvas
+                    value={`upi://pay?pa=merchant@zeropay&pn=ZeroPay&am=${amount}&cu=INR`}
+                    size={200}
+                    level="H"
+                    includeMargin={true}
+                  />
+                </div>
+                <p className="mt-2 text-xs text-gray-600 text-center">
+                  Scan with any UPI app
+                </p>
+              </div>
+
+              {/* Divider */}
+              <div className="flex items-center gap-4">
+                <div className="flex-1 h-px bg-gray-300"></div>
+                <span className="text-sm text-gray-500">OR</span>
+                <div className="flex-1 h-px bg-gray-300"></div>
+              </div>
+
               {/* UPI Details */}
               <label
                 htmlFor="upi-id"
