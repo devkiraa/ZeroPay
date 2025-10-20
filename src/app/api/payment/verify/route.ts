@@ -51,6 +51,21 @@ export async function POST(request: NextRequest) {
     // 5. Save the updated transaction
     await transaction.save();
 
+    // 6. Send payment success email (non-blocking, only if successful)
+    if (isSuccess) {
+      const { sendEmail, getPaymentSuccessEmailContent } = await import('@/lib/sendEmail');
+      const emailContent = getPaymentSuccessEmailContent(
+        transaction.orderId,
+        transaction.amount,
+        transaction.currency,
+        transaction.customerEmail
+      );
+      sendEmail({
+        to: transaction.customerEmail,
+        ...emailContent,
+      }).catch((error) => console.error('Failed to send payment success email:', error));
+    }
+
     return NextResponse.json(
       {
         success: true,
