@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 export async function GET() {
   try {
     // Get the cookie store
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
 
     // Delete the 'token' cookie by setting its value to empty and maxAge to 0
     cookieStore.set('token', '', {

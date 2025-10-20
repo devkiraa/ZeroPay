@@ -12,17 +12,17 @@ interface CachedConnection {
 let cached = (global as { mongoose?: CachedConnection }).mongoose;
 
 if (!cached) {
-  cached = (global as { mongoose: CachedConnection }).mongoose = { conn: null, promise: null };
+  cached = ((global as unknown) as { mongoose: CachedConnection }).mongoose = { conn: null, promise: null };
 }
 
 async function dbConnect() {
   // If we already have a cached connection, return it
-  if (cached.conn) {
-    return cached.conn;
+  if (cached!.conn) {
+    return cached!.conn;
   }
 
   // If a connection promise is not already in progress, create one
-  if (!cached.promise) {
+  if (!cached!.promise) {
     const opts = {
       bufferCommands: false,
     };
@@ -35,21 +35,21 @@ async function dbConnect() {
       );
     }
 
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
+    cached!.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
       return mongoose;
     });
   }
 
   // Wait for the connection promise to resolve and cache the connection
   try {
-    cached.conn = await cached.promise;
+    cached!.conn = await cached!.promise;
   } catch (e) {
-    cached.promise = null;
+    cached!.promise = null;
     throw e;
   }
 
   // Return the connection
-  return cached.conn;
+  return cached!.conn;
 }
 
 export default dbConnect;

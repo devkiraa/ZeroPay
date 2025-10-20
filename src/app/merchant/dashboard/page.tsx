@@ -24,15 +24,13 @@ async function getMerchantData(cookieStore: ReadonlyRequestCookies) {
     const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
     await dbConnect();
     const merchant = await Merchant.findById(decoded.id)
-      .select('-passwordHash')
-      .lean();
+      .select('-passwordHash');
 
     if (!merchant) return null;
 
     const transactions = await Transaction.find({ merchantId: merchant._id })
       .sort({ createdAt: -1 })
-      .limit(10)
-      .lean();
+      .limit(10);
 
     const totalRevenue = transactions
       .filter((tx) => tx.status === 'success')
@@ -57,7 +55,7 @@ async function getMerchantData(cookieStore: ReadonlyRequestCookies) {
 export default async function DashboardPage() {
   // --- THIS IS THE FIX ---
   // We call cookies() here, at the top level of the component
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   // And then pass it to our data function
   const data = await getMerchantData(cookieStore);
   // --- END FIX ---

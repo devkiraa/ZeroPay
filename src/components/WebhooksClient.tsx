@@ -89,7 +89,7 @@ export default function WebhooksClient({
           {webhooks.length > 0 ? (
             webhooks.map((hook) => (
               <div
-                key={hook._id}
+                key={String(hook._id)}
                 className="flex flex-col p-4 border border-gray-200 rounded-lg md:flex-row md:items-center"
               >
                 <WebhookIcon className="w-6 h-6 mr-3 text-accent" />

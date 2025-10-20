@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof ZodError) {
       return NextResponse.json(
-        { success: false, message: 'Invalid input', errors: error.errors.map((e) => e.message) },
+        { success: false, message: 'Invalid input', errors: error.issues.map((e) => e.message) },
         { status: 400 }
       );
     }

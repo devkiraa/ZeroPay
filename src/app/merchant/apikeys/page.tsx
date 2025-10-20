@@ -24,8 +24,7 @@ async function getMerchantKeys(cookieStore: ReadonlyRequestCookies) {
     await dbConnect();
 
     const merchant = await Merchant.findById(decoded.id)
-      .select('publicKey secretKey')
-      .lean();
+      .select('publicKey secretKey');
 
     if (!merchant) return null;
 
@@ -43,7 +42,7 @@ async function getMerchantKeys(cookieStore: ReadonlyRequestCookies) {
 export default async function ApiKeysPage() {
   // --- THIS IS THE FIX ---
   // We call cookies() here, at the top level of the component
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   // And then pass it to our data function
   const data = await getMerchantKeys(cookieStore);
   // --- END FIX ---

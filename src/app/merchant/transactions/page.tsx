@@ -22,11 +22,8 @@ async function getMerchantTransactions(cookieStore: ReadonlyRequestCookies) {
     await dbConnect();
 
     // Fetch all transactions for this merchant, newest first
-    // --- THIS IS THE CORRECTED BLOCK ---
     const transactions = await Transaction.find({ merchantId: decoded.id })
-      .sort({ createdAt: -1 })
-      .lean(); // Use .lean()
-    // --- END CORRECTION --- (Removed duplicated code)
+      .sort({ createdAt: -1 });
 
     if (!transactions) return null;
 
@@ -42,7 +39,7 @@ async function getMerchantTransactions(cookieStore: ReadonlyRequestCookies) {
 
 // Main Page (Server Component)
 export default async function TransactionsPage() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const data = await getMerchantTransactions(cookieStore);
 
   // 1. Auth check (runs on server)
