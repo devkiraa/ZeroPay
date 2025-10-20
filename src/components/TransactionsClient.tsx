@@ -1,20 +1,28 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { ITransaction } from '@/models/Transaction';
-import { Search, SlidersHorizontal } from 'lucide-react';
+import { Search, SlidersHorizontal, ChevronLeft, ChevronRight } from 'lucide-react';
 
 type TransactionsClientProps = {
   transactions: ITransaction[];
+  currentPage: number;
+  totalPages: number;
+  totalTransactions: number;
 };
 
 export default function TransactionsClient({
   transactions,
+  currentPage,
+  totalPages,
+  totalTransactions,
 }: TransactionsClientProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const router = useRouter();
 
-  // Filter logic
+  // Filter logic (client-side filtering within the current page)
   const filteredTransactions = useMemo(() => {
     return transactions.filter((tx) => {
       const searchMatch =
@@ -28,13 +36,22 @@ export default function TransactionsClient({
     });
   }, [transactions, searchTerm, statusFilter]);
 
+  const handlePageChange = (newPage: number) => {
+    router.push(`/merchant/transactions?page=${newPage}`);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header and Filters */}
       <div className="p-6 bg-primary-light rounded-2xl shadow-md">
-        <h2 className="mb-4 text-xl font-semibold text-text-light-primary">
-          All Transactions
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold text-text-light-primary">
+            All Transactions
+          </h2>
+          <p className="text-sm text-text-light-secondary">
+            {totalTransactions} total transaction{totalTransactions !== 1 ? 's' : ''}
+          </p>
+        </div>
 
         <div className="flex flex-col gap-4 md:flex-row">
           {/* Search Bar */}
@@ -147,7 +164,31 @@ export default function TransactionsClient({
             </tbody>
           </table>
         </div>
-        {/* TODO: Add Pagination controls here */}
+        
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-6 pt-6 border-t border-gray-200">
+            <div className="text-sm text-text-light-secondary">
+              Page {currentPage} of {totalPages}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-4 py-2 text-sm font-medium text-text-light-primary bg-light-background border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 text-sm font-medium text-text-light-primary bg-light-background border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
