@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import dbConnect from '@/lib/dbConnect';
@@ -9,7 +9,7 @@ interface TokenPayload extends JwtPayload {
   id: string;
 }
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   await dbConnect();
 
   try {

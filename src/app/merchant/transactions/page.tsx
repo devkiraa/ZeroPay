@@ -2,7 +2,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import dbConnect from '@/lib/dbConnect';
-import Transaction, { ITransaction } from '@/models/Transaction';
+import Transaction from '@/models/Transaction';
 import TransactionsClient from '@/components/TransactionsClient';
 import { ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies';
 

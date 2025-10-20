@@ -27,7 +27,8 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json({ success: true, data: webhooks }, { status: 200 });
-  } catch (error) {
+  } catch (err) {
+    console.error('Webhook GET Error:', err);
     return NextResponse.json(
       { success: false, message: 'An unexpected error occurred' },
       { status: 500 }

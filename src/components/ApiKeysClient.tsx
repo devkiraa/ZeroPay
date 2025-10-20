@@ -48,8 +48,9 @@ export default function ApiKeysClient({
       } else {
         alert('Failed to regenerate keys: ' + data.message);
       }
-    } catch (error) {
+    } catch (err) {
       alert('An error occurred. Please try again.');
+      console.error('Regenerate Keys Error:', err);
     }
     setIsLoading(false);
   };
