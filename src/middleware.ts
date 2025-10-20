@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/dbConnect';
-import Merchant from '@/models/Merchant';
 
 export async function middleware(request: NextRequest) {
-  // 1. Get the Authorization header
   const authHeader = request.headers.get('Authorization');
 
   if (!authHeader) {
@@ -13,7 +10,6 @@ export async function middleware(request: NextRequest) {
     );
   }
 
-  // 2. Check for 'Bearer' prefix and extract the key
   const parts = authHeader.split(' ');
   if (parts.length !== 2 || parts[0] !== 'Bearer') {
     return NextResponse.json(
@@ -21,49 +17,60 @@ export async function middleware(request: NextRequest) {
       { status: 401 }
     );
   }
-  
-  const secretKey = parts[1];
 
+  const secretKey = parts[1];
   if (!secretKey.startsWith('sk_test_')) {
     return NextResponse.json(
-      { success: false, message: 'Invalid API key' },
+      { success: false, message: 'Invalid API key format' },
       { status: 401 }
     );
   }
 
-  try {
-    // 3. Connect to DB and find the merchant by their secret key
-    await dbConnect();
-    const merchant = await Merchant.findOne({ secretKey: secretKey });
+  // Get the base URL (e.g., http://localhost:3000)
+  const validateUrl = `${request.nextUrl.origin}/api/internal/validate-key`;
 
-    if (!merchant) {
+  try {
+    // Call our internal Node.js API to do the DB lookup
+    const res = await fetch(validateUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': authHeader, // Pass the original header
+        'x-internal-secret': process.env.INTERNAL_API_SECRET || '',
+      },
+      body: JSON.stringify({}),
+    });
+
+    if (!res.ok) {
+      const payload = await res.json().catch(() => ({ message: 'Invalid key' }));
       return NextResponse.json(
-        { success: false, message: 'Invalid API key' },
+        { success: false, message: payload.message || 'Invalid API key' },
         { status: 401 }
       );
     }
 
-    // 4. Key is valid! Attach merchant ID to the request headers.
-    const requestHeaders = new Headers(request.headers);
-    requestHeaders.set('x-merchant-id', merchant._id.toString());
+    const data = await res.json(); // Expect { success: true, merchantId: '...' }
 
-    // Continue to the intended API route
+    // Attach merchant id to downstream headers for our API routes
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set('x-merchant-id', data.merchantId);
+
     return NextResponse.next({
       request: {
         headers: requestHeaders,
       },
     });
-
   } catch (error) {
-    console.error('Middleware Error:', error);
+    console.error('Middleware Fetch Error:', error);
     return NextResponse.json(
-      { success: false, message: 'An internal server error occurred' },
+      { success: false, message: 'Internal server error in middleware' },
       { status: 500 }
     );
   }
 }
 
-// 5. The Matcher: This still protects all /api/merchant/ routes
 export const config = {
+  // Our internal route /api/internal/ is NOT matched by this,
+  // so we don't have an infinite loop.
   matcher: '/api/merchant/:path*',
 };
