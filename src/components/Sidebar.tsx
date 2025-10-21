@@ -11,6 +11,7 @@ import {
   Zap,
   Settings,
   BookOpen,
+  Shield,
 } from "lucide-react";
 
 const navItems = [
@@ -23,6 +24,7 @@ const navItems = [
   { name: "API Keys", href: "/merchant/apikeys", icon: KeyRound },
   { name: "Webhooks", href: "/merchant/webhooks", icon: Webhook },
   { name: "Profile", href: "/merchant/profile", icon: User },
+  { name: "Security", href: "/merchant/security", icon: Shield },
   { name: "Settings", href: "/merchant/settings", icon: Settings },
   { name: "API Docs", href: "/devportal", icon: BookOpen },
 ];
