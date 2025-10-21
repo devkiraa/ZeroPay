@@ -14,6 +14,7 @@ import {
   Shield,
   BarChart3,
   AlertTriangle,
+  Bell,
 } from "lucide-react";
 
 const navItems = [
@@ -29,6 +30,7 @@ const navItems = [
   { name: "Webhooks", href: "/merchant/webhooks", icon: Webhook },
   { name: "Profile", href: "/merchant/profile", icon: User },
   { name: "Security", href: "/merchant/security", icon: Shield },
+  { name: "Notifications", href: "/merchant/notifications", icon: Bell },
   { name: "Settings", href: "/merchant/settings", icon: Settings },
   { name: "API Docs", href: "/devportal", icon: BookOpen },
 ];

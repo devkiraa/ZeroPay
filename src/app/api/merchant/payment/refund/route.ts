@@ -39,16 +39,33 @@ export async function POST(request: NextRequest) {
     tx.refundReason = reason || "";
     tx.refundDate = new Date();
     await tx.save();
+
+    // Send refund notification email
+    const { sendEmail, getRefundEmailContent } = await import(
+      "@/lib/sendEmail"
+    );
+    const emailContent = getRefundEmailContent(
+      tx.orderId,
+      amount,
+      tx.currency,
+      reason || "Refund requested by merchant",
+      tx.customerEmail
+    );
+    sendEmail({
+      to: tx.customerEmail,
+      ...emailContent,
+    }).catch((error) => console.error("Failed to send refund email:", error));
+
     return NextResponse.json({
       success: true,
       message: "Refund processed",
       data: { orderId, refundedAmount: amount, refundReason: reason },
     });
   } catch (error) {
+    console.error("Refund error:", error);
     return NextResponse.json({
       success: false,
       message: "Refund failed",
-      error: error?.message,
     });
   }
 }

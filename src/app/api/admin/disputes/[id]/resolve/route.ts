@@ -73,7 +73,47 @@ export async function POST(
         transaction.refundReason = `Dispute resolved in favor of customer: ${dispute.reason}`;
         transaction.refundDate = new Date();
         await transaction.save();
+
+        // Send refund notification to customer
+        const { sendEmail, getRefundEmailContent } = await import(
+          "@/lib/sendEmail"
+        );
+        const refundEmailContent = getRefundEmailContent(
+          transaction.orderId,
+          transaction.amount,
+          transaction.currency,
+          `Dispute resolved in favor of customer: ${dispute.reason}`,
+          transaction.customerEmail
+        );
+        sendEmail({
+          to: transaction.customerEmail,
+          ...refundEmailContent,
+        }).catch((error) =>
+          console.error("Failed to send refund email:", error)
+        );
       }
+    }
+
+    // Send dispute resolution email to merchant
+    const { sendEmail, getDisputeResolvedEmailContent } = await import(
+      "@/lib/sendEmail"
+    );
+    const Merchant = (await import("@/models/Merchant")).default;
+    const merchantInfo = await Merchant.findById(dispute.merchantId);
+    if (merchantInfo) {
+      const emailContent = getDisputeResolvedEmailContent(
+        merchantInfo.name,
+        dispute.orderId,
+        dispute.amount,
+        decision,
+        notes || ""
+      );
+      sendEmail({
+        to: merchantInfo.email,
+        ...emailContent,
+      }).catch((error) =>
+        console.error("Failed to send dispute resolution email:", error)
+      );
     }
 
     return NextResponse.json({

@@ -98,6 +98,29 @@ export async function POST(req: NextRequest) {
     transaction.hasDispute = true;
     await transaction.save();
 
+    // Send dispute notification email to merchant
+    const { sendEmail, getDisputeCreatedEmailContent } = await import(
+      "@/lib/sendEmail"
+    );
+    const merchantInfo = await import("@/models/Merchant").then((mod) =>
+      mod.default.findById(transaction.merchantId)
+    );
+    if (merchantInfo) {
+      const emailContent = getDisputeCreatedEmailContent(
+        merchantInfo.name,
+        transaction.orderId,
+        transaction.amount,
+        reason,
+        customerMessage
+      );
+      sendEmail({
+        to: merchantInfo.email,
+        ...emailContent,
+      }).catch((error) =>
+        console.error("Failed to send dispute notification email:", error)
+      );
+    }
+
     return NextResponse.json({
       success: true,
       message: "Dispute created successfully",
