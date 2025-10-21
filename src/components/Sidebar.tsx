@@ -12,6 +12,8 @@ import {
   Settings,
   BookOpen,
   Shield,
+  BarChart3,
+  AlertTriangle,
 } from "lucide-react";
 
 const navItems = [
@@ -21,6 +23,8 @@ const navItems = [
     href: "/merchant/transactions",
     icon: ArrowRightLeft,
   },
+  { name: "Analytics", href: "/merchant/analytics", icon: BarChart3 },
+  { name: "Disputes", href: "/merchant/disputes", icon: AlertTriangle },
   { name: "API Keys", href: "/merchant/apikeys", icon: KeyRound },
   { name: "Webhooks", href: "/merchant/webhooks", icon: Webhook },
   { name: "Profile", href: "/merchant/profile", icon: User },

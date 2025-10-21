@@ -1,13 +1,13 @@
-'use client'; // This is the Client Component
+"use client"; // This is the Client Component
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 import {
   DollarSign,
   Percent,
   ArrowRightLeft,
   CheckCircle,
   Radio,
-} from 'lucide-react';
+} from "lucide-react";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -16,9 +16,9 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
-} from 'recharts';
-import { IMerchant } from '@/models/Merchant';
-import { ITransaction } from '@/models/Transaction';
+} from "recharts";
+import { IMerchant } from "@/models/Merchant";
+import { ITransaction } from "@/models/Transaction";
 
 // Define the prop types this component expects
 type DashboardClientProps = {
@@ -33,13 +33,13 @@ type DashboardClientProps = {
 
 // Mock chart data (as before)
 const chartData = [
-  { name: 'Mon', revenue: 400 },
-  { name: 'Tue', revenue: 300 },
-  { name: 'Wed', revenue: 600 },
-  { name: 'Thu', revenue: 800 },
-  { name: 'Fri', revenue: 500 },
-  { name: 'Sat', revenue: 700 },
-  { name: 'Sun', revenue: 900 },
+  { name: "Mon", revenue: 400 },
+  { name: "Tue", revenue: 300 },
+  { name: "Wed", revenue: 600 },
+  { name: "Thu", revenue: 800 },
+  { name: "Fri", revenue: 500 },
+  { name: "Sat", revenue: 700 },
+  { name: "Sun", revenue: 900 },
 ];
 
 // This is the Client-side chart component (Light Theme)
@@ -73,11 +73,11 @@ function DashboardChart() {
         <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
         <Tooltip
           contentStyle={{
-            backgroundColor: '#FFFFFF', // bg-primary-light
-            border: '1px solid #E2E8F0', // border-gray-200
-            borderRadius: '0.5rem',
+            backgroundColor: "#FFFFFF", // bg-primary-light
+            border: "1px solid #E2E8F0", // border-gray-200
+            borderRadius: "0.5rem",
           }}
-          labelStyle={{ color: '#0F172A' }} // text-text-light-primary
+          labelStyle={{ color: "#0F172A" }} // text-text-light-primary
         />
         <Area
           type="monotone"
@@ -93,32 +93,38 @@ function DashboardChart() {
 
 // This is our main Client Component (Light Theme)
 export default function DashboardClient({
+  merchant,
   transactions: initialTransactions,
   analytics,
 }: DashboardClientProps) {
-  const [transactions, setTransactions] = useState<ITransaction[]>(initialTransactions);
+  const [transactions, setTransactions] =
+    useState<ITransaction[]>(initialTransactions);
   const [isPolling, setIsPolling] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
   // Function to fetch new transactions
   const fetchNewTransactions = useCallback(async () => {
     try {
-      const res = await fetch(`/api/merchant/dashboard/updates?since=${lastUpdate.toISOString()}`);
+      const res = await fetch(
+        `/api/merchant/dashboard/updates?since=${lastUpdate.toISOString()}`
+      );
 
       if (res.ok) {
         const data = await res.json();
         if (data.success && data.data.length > 0) {
           // Prepend new transactions to the list
-          setTransactions(prev => {
-            const existingTxIds = new Set(prev.map(tx => tx.orderId));
-            const uniqueNewTx = data.data.filter((tx: ITransaction) => !existingTxIds.has(tx.orderId));
+          setTransactions((prev) => {
+            const existingTxIds = new Set(prev.map((tx) => tx.orderId));
+            const uniqueNewTx = data.data.filter(
+              (tx: ITransaction) => !existingTxIds.has(tx.orderId)
+            );
             return [...uniqueNewTx, ...prev].slice(0, 10); // Keep only 10 most recent
           });
           setLastUpdate(new Date());
         }
       }
     } catch (error) {
-      console.error('Failed to fetch new transactions:', error);
+      console.error("Failed to fetch new transactions:", error);
     }
   }, [lastUpdate]);
 
@@ -135,19 +141,37 @@ export default function DashboardClient({
 
   return (
     <div className="space-y-6">
+      {/* Mode Indicator Banner */}
+      {merchant.sandboxMode && (
+        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-1 text-xs font-semibold text-blue-800 bg-blue-200 rounded-full">
+              TEST MODE
+            </span>
+            <span className="text-sm text-blue-900">
+              All transactions are simulated. No real money is being processed.
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Real-time indicator */}
       <div className="flex items-center justify-between p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
         <div className="flex items-center gap-2">
-          <Radio className={`w-4 h-4 ${isPolling ? 'text-emerald-600 animate-pulse' : 'text-gray-400'}`} />
+          <Radio
+            className={`w-4 h-4 ${
+              isPolling ? "text-emerald-600 animate-pulse" : "text-gray-400"
+            }`}
+          />
           <span className="text-sm font-medium text-emerald-900">
-            {isPolling ? 'Live Updates Active' : 'Live Updates Paused'}
+            {isPolling ? "Live Updates Active" : "Live Updates Paused"}
           </span>
         </div>
         <button
           onClick={() => setIsPolling(!isPolling)}
           className="px-3 py-1 text-xs font-medium text-emerald-700 bg-white border border-emerald-300 rounded-lg hover:bg-emerald-50 transition-colors"
         >
-          {isPolling ? 'Pause' : 'Resume'}
+          {isPolling ? "Pause" : "Resume"}
         </button>
       </div>
 
@@ -251,11 +275,11 @@ export default function DashboardClient({
                       {/* Light-theme status badges */}
                       <span
                         className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          tx.status === 'success'
-                            ? 'bg-green-100 text-green-800'
-                            : tx.status === 'failed'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-yellow-100 text-yellow-800'
+                          tx.status === "success"
+                            ? "bg-green-100 text-green-800"
+                            : tx.status === "failed"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-yellow-100 text-yellow-800"
                         }`}
                       >
                         {tx.status}
@@ -282,4 +306,4 @@ export default function DashboardClient({
       </div>
     </div>
   );
-}   
+}

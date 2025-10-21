@@ -104,6 +104,9 @@ export default function TransactionsClient({
                   Order ID
                 </th>
                 <th className="px-4 py-3 text-xs font-medium tracking-wider text-left uppercase text-text-light-secondary">
+                  Mode
+                </th>
+                <th className="px-4 py-3 text-xs font-medium tracking-wider text-left uppercase text-text-light-secondary">
                   Status
                 </th>
                 <th className="px-4 py-3 text-xs font-medium tracking-wider text-left uppercase text-text-light-secondary">
@@ -132,6 +135,17 @@ export default function TransactionsClient({
                   >
                     <td className="px-4 py-3 text-sm font-medium text-text-light-primary whitespace-nowrap">
                       {tx.orderId.substring(0, 12)}...
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span
+                        className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          tx.isTestMode
+                            ? "bg-blue-100 text-blue-800"
+                            : "bg-purple-100 text-purple-800"
+                        }`}
+                      >
+                        {tx.isTestMode ? "Test" : "Live"}
+                      </span>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <span
@@ -185,7 +199,7 @@ export default function TransactionsClient({
               ) : (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="px-4 py-4 text-sm text-center text-text-light-secondary"
                   >
                     {transactions.length === 0
@@ -232,7 +246,7 @@ export default function TransactionsClient({
                     } else {
                       setRefundMessage(data.message || "Refund failed");
                     }
-                  } catch (err) {
+                  } catch {
                     setRefundMessage("Refund failed");
                   }
                   setRefundLoading(false);

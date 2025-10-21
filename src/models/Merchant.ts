@@ -10,6 +10,7 @@ export interface IMerchant extends Document {
   secretKey: string;
   twoFactorEnabled: boolean;
   twoFactorSecret?: string;
+  sandboxMode: boolean;
   createdAt: Date;
   transactions: mongoose.Types.ObjectId[]; // Array of Transaction ObjectIds
 }
@@ -49,6 +50,10 @@ const MerchantSchema: Schema = new Schema(
     twoFactorSecret: {
       type: String,
       required: false,
+    },
+    sandboxMode: {
+      type: Boolean,
+      default: true, // Start in sandbox mode by default
     },
     transactions: [
       {

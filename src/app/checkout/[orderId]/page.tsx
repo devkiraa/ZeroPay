@@ -119,6 +119,18 @@ export default function CheckoutPage() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-white">
       <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+        {/* Test Mode Banner */}
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center justify-center gap-2">
+            <span className="px-2 py-1 text-xs font-semibold text-blue-800 bg-blue-200 rounded-full">
+              TEST MODE
+            </span>
+            <span className="text-xs text-blue-900">
+              This is a simulated payment
+            </span>
+          </div>
+        </div>
+
         <h2 className="text-xl font-semibold text-center text-gray-900">
           ZeroPay Checkout
         </h2>

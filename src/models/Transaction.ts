@@ -14,6 +14,8 @@ export interface ITransaction extends Document {
   method: PaymentMethod;
   orderId: string; // Our internal unique order ID
   customerEmail: string;
+  isTestMode: boolean; // Whether this is a test transaction
+  hasDispute: boolean; // Whether this transaction has an open dispute
   createdAt: Date;
   refundedAmount?: number;
   refundReason?: string;
@@ -56,6 +58,14 @@ const TransactionSchema: Schema = new Schema(
       type: String,
       required: [true, "Customer email is required"],
       trim: true,
+    },
+    isTestMode: {
+      type: Boolean,
+      default: false,
+    },
+    hasDispute: {
+      type: Boolean,
+      default: false,
     },
     refundedAmount: {
       type: Number,

@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
       method,
       customerEmail,
       currency: "INR", // Defaulting to INR as per schema
+      isTestMode: merchant.sandboxMode, // Track if this is a test transaction
     });
 
     const savedTransaction = await newTransaction.save();
