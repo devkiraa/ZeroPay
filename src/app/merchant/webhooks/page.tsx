@@ -1,10 +1,12 @@
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
-import jwt, { JwtPayload } from 'jsonwebtoken';
-import dbConnect from '@/lib/dbConnect';
-import Webhook from '@/models/Webhook';
-import WebhooksClient from '@/components/WebhooksClient';
-import { ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies';
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import dbConnect from "@/lib/dbConnect";
+import Webhook from "@/models/Webhook";
+import WebhooksClient from "@/components/WebhooksClient";
+import { WebhooksSkeleton } from "@/components/SkeletonLoaders";
+import { Suspense } from "react";
+import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 
 interface TokenPayload extends JwtPayload {
   id: string;
@@ -12,7 +14,7 @@ interface TokenPayload extends JwtPayload {
 
 // Server-side data fetching
 async function getMerchantWebhooks(cookieStore: ReadonlyRequestCookies) {
-  const token = cookieStore.get('token')?.value;
+  const token = cookieStore.get("token")?.value;
   const JWT_SECRET = process.env.JWT_SECRET;
 
   if (!token || !JWT_SECRET) return null;
@@ -21,14 +23,15 @@ async function getMerchantWebhooks(cookieStore: ReadonlyRequestCookies) {
     const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
     await dbConnect();
 
-    const webhooks = await Webhook.find({ merchantId: decoded.id })
-      .sort({ createdAt: -1 });
+    const webhooks = await Webhook.find({ merchantId: decoded.id }).sort({
+      createdAt: -1,
+    });
 
     return {
       webhooks: JSON.parse(JSON.stringify(webhooks)),
     };
   } catch (error) {
-    console.error('Auth Error:', error);
+    console.error("Auth Error:", error);
     return null;
   }
 }
@@ -39,8 +42,12 @@ export default async function WebhooksPage() {
   const data = await getMerchantWebhooks(cookieStore);
 
   if (!data) {
-    redirect('/merchant/login');
+    redirect("/merchant/login");
   }
 
-  return <WebhooksClient initialWebhooks={data.webhooks} />;
+  return (
+    <Suspense fallback={<WebhooksSkeleton />}>
+      <WebhooksClient initialWebhooks={data.webhooks} />
+    </Suspense>
+  );
 }

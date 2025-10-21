@@ -1,7 +1,7 @@
-'use client'; // For using usePathname hook
+"use client"; // For using usePathname hook
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   ArrowRightLeft,
@@ -9,14 +9,22 @@ import {
   Webhook,
   User,
   Zap,
-} from 'lucide-react';
+  Settings,
+  BookOpen,
+} from "lucide-react";
 
 const navItems = [
-  { name: 'Dashboard', href: '/merchant/dashboard', icon: LayoutDashboard },
-  { name: 'Transactions', href: '/merchant/transactions', icon: ArrowRightLeft },
-  { name: 'API Keys', href: '/merchant/apikeys', icon: KeyRound },
-  { name: 'Webhooks', href: '/merchant/webhooks', icon: Webhook },
-  { name: 'Profile', href: '/merchant/profile', icon: User },
+  { name: "Dashboard", href: "/merchant/dashboard", icon: LayoutDashboard },
+  {
+    name: "Transactions",
+    href: "/merchant/transactions",
+    icon: ArrowRightLeft,
+  },
+  { name: "API Keys", href: "/merchant/apikeys", icon: KeyRound },
+  { name: "Webhooks", href: "/merchant/webhooks", icon: Webhook },
+  { name: "Profile", href: "/merchant/profile", icon: User },
+  { name: "Settings", href: "/merchant/settings", icon: Settings },
+  { name: "API Docs", href: "/devportal", icon: BookOpen },
 ];
 
 export default function Sidebar() {
@@ -41,8 +49,8 @@ export default function Sidebar() {
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all
                   ${
                     pathname === item.href
-                      ? 'bg-accent text-primary-dark font-medium' // Active link
-                      : 'text-text-dark-secondary hover:bg-secondary hover:text-primary-light' // Inactive link
+                      ? "bg-accent text-primary-dark font-medium" // Active link
+                      : "text-text-dark-secondary hover:bg-secondary hover:text-primary-light" // Inactive link
                   }
                 `}
               >

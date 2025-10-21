@@ -1,10 +1,12 @@
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
-import jwt, { JwtPayload } from 'jsonwebtoken';
-import dbConnect from '@/lib/dbConnect';
-import Merchant from '@/models/Merchant';
-import ProfileClient from '@/components/ProfileClient';
-import { ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies';
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import dbConnect from "@/lib/dbConnect";
+import Merchant from "@/models/Merchant";
+import ProfileClient from "@/components/ProfileClient";
+import { ProfileSkeleton } from "@/components/SkeletonLoaders";
+import { Suspense } from "react";
+import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 
 interface TokenPayload extends JwtPayload {
   id: string;
@@ -12,7 +14,7 @@ interface TokenPayload extends JwtPayload {
 
 // Server-side data fetching
 async function getMerchantProfile(cookieStore: ReadonlyRequestCookies) {
-  const token = cookieStore.get('token')?.value;
+  const token = cookieStore.get("token")?.value;
   const JWT_SECRET = process.env.JWT_SECRET;
 
   if (!token || !JWT_SECRET) return null;
@@ -21,8 +23,7 @@ async function getMerchantProfile(cookieStore: ReadonlyRequestCookies) {
     const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
     await dbConnect();
 
-    const merchant = await Merchant.findById(decoded.id)
-      .select('name email');
+    const merchant = await Merchant.findById(decoded.id).select("name email");
 
     if (!merchant) return null;
 
@@ -30,7 +31,7 @@ async function getMerchantProfile(cookieStore: ReadonlyRequestCookies) {
       merchant: JSON.parse(JSON.stringify(merchant)),
     };
   } catch (error) {
-    console.error('Auth Error:', error);
+    console.error("Auth Error:", error);
     return null;
   }
 }
@@ -41,8 +42,12 @@ export default async function ProfilePage() {
   const data = await getMerchantProfile(cookieStore);
 
   if (!data) {
-    redirect('/merchant/login');
+    redirect("/merchant/login");
   }
 
-  return <ProfileClient merchant={data.merchant} />;
+  return (
+    <Suspense fallback={<ProfileSkeleton />}>
+      <ProfileClient merchant={data.merchant} />
+    </Suspense>
+  );
 }

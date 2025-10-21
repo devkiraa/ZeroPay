@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { IWebhook } from '@/models/Webhook';
-import { Plus, Webhook as WebhookIcon, Globe, Loader2 } from 'lucide-react';
+import { useState } from "react";
+import { IWebhook } from "@/models/Webhook";
+import { Plus, Webhook as WebhookIcon, Globe, Loader2 } from "lucide-react";
 
 type WebhooksClientProps = {
   initialWebhooks: IWebhook[];
@@ -12,37 +12,72 @@ export default function WebhooksClient({
   initialWebhooks,
 }: WebhooksClientProps) {
   const [webhooks, setWebhooks] = useState(initialWebhooks);
-  const [newUrl, setNewUrl] = useState('');
+  const [newUrl, setNewUrl] = useState("");
+  const [selectedEvents, setSelectedEvents] = useState<string[]>([
+    "payment.success",
+    "payment.failed",
+  ]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [testLoading, setTestLoading] = useState(false);
+  const [testMessage, setTestMessage] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
-
     try {
-      // For this demo, we'll subscribe to both events by default
-      const events = ['payment.success', 'payment.failed'];
-      const res = await fetch('/api/merchant/webhooks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        // We use the merchant's session cookie, not API key,
-        // because this is an action from the dashboard
-        body: JSON.stringify({ url: newUrl, events }),
+      const res = await fetch("/api/merchant/webhooks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: newUrl, events: selectedEvents }),
       });
-
       const data = await res.json();
-      if (!data.success) {
-        throw new Error(data.message || 'Failed to create webhook');
-      }
-
-      setWebhooks([data.data, ...webhooks]); // Add new webhook to top of list
-      setNewUrl('');
+      if (!data.success)
+        throw new Error(data.message || "Failed to create webhook");
+      setWebhooks([data.data, ...webhooks]);
+      setNewUrl("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred');
+      setError(
+        err instanceof Error ? err.message : "An unknown error occurred"
+      );
     }
     setIsLoading(false);
+  };
+
+  const handleDelete = async (id: string) => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(`/api/merchant/webhooks/${id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (data.success) {
+        setWebhooks(webhooks.filter((w) => String(w._id) !== id));
+      } else {
+        setError(data.message || "Delete failed");
+      }
+    } catch {
+      setError("Delete failed");
+    }
+    setIsLoading(false);
+  };
+
+  const handleTest = async (id: string) => {
+    setTestLoading(true);
+    setTestMessage("");
+    try {
+      const res = await fetch(`/api/merchant/webhooks/${id}/test`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      setTestMessage(
+        data.success ? "Test sent!" : data.message || "Test failed"
+      );
+    } catch {
+      setTestMessage("Test failed");
+    }
+    setTestLoading(false);
   };
 
   return (
@@ -52,7 +87,10 @@ export default function WebhooksClient({
         <h2 className="mb-4 text-xl font-semibold text-text-light-primary">
           Add a new Webhook Endpoint
         </h2>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4 md:flex-row">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col gap-4 md:flex-row"
+        >
           <div className="relative flex-grow">
             <input
               type="url"
@@ -63,6 +101,31 @@ export default function WebhooksClient({
               required
             />
             <Globe className="absolute w-5 h-5 top-3.5 left-3 text-gray-400" />
+          </div>
+          <div className="flex flex-col gap-2 min-w-[180px]">
+            <label className="text-xs font-medium text-text-light-secondary">
+              Events
+            </label>
+            <div className="flex gap-2 flex-wrap">
+              {["payment.success", "payment.failed", "payment.refunded"].map(
+                (ev) => (
+                  <label key={ev} className="flex items-center gap-1 text-xs">
+                    <input
+                      type="checkbox"
+                      checked={selectedEvents.includes(ev)}
+                      onChange={(e) => {
+                        setSelectedEvents((sel) =>
+                          e.target.checked
+                            ? [...sel, ev]
+                            : sel.filter((x) => x !== ev)
+                        );
+                      }}
+                    />
+                    {ev.replace("payment.", "")}
+                  </label>
+                )
+              )}
+            </div>
           </div>
           <button
             type="submit"
@@ -90,7 +153,7 @@ export default function WebhooksClient({
             webhooks.map((hook) => (
               <div
                 key={String(hook._id)}
-                className="flex flex-col p-4 border border-gray-200 rounded-lg md:flex-row md:items-center"
+                className="flex flex-col p-4 border border-gray-200 rounded-lg md:flex-row md:items-center gap-2"
               >
                 <WebhookIcon className="w-6 h-6 mr-3 text-accent" />
                 <div className="flex-1">
@@ -98,19 +161,39 @@ export default function WebhooksClient({
                     {hook.url}
                   </p>
                   <p className="text-xs text-text-light-secondary">
-                    Subscribed to: {hook.events.join(', ')}
+                    Subscribed to: {hook.events.join(", ")}
                   </p>
                 </div>
                 <p className="mt-2 text-xs text-gray-400 md:mt-0 md:ml-4">
                   Created: {new Date(hook.createdAt).toLocaleDateString()}
                 </p>
-                {/* TODO: Add a 'Delete' button here */}
+                <div className="flex gap-2 mt-2 md:mt-0">
+                  <button
+                    className="px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                    onClick={() => handleTest(String(hook._id))}
+                    disabled={testLoading}
+                  >
+                    {testLoading ? "Testing..." : "Test"}
+                  </button>
+                  <button
+                    className="px-3 py-1 text-xs font-medium text-white bg-red-600 rounded-lg hover:bg-red-700"
+                    onClick={() => handleDelete(String(hook._id))}
+                    disabled={isLoading}
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             ))
           ) : (
             <p className="text-sm text-center text-text-light-secondary">
               You haven&apos;t added any webhook endpoints yet.
             </p>
+          )}
+          {testMessage && (
+            <div className="mt-2 text-xs text-center text-blue-700 bg-blue-100 border border-blue-300 rounded-lg px-4 py-2">
+              {testMessage}
+            </div>
           )}
         </div>
       </div>

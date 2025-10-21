@@ -1,8 +1,8 @@
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
-import jwt, { JwtPayload } from 'jsonwebtoken';
-import { Shield, LogOut } from 'lucide-react';
-import Link from 'next/link';
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import { Shield, LogOut } from "lucide-react";
+import Link from "next/link";
 
 interface TokenPayload extends JwtPayload {
   id: string;
@@ -11,17 +11,17 @@ interface TokenPayload extends JwtPayload {
 
 async function verifyAdminAuth() {
   const cookieStore = await cookies();
-  const token = cookieStore.get('admin-token')?.value;
+  const token = cookieStore.get("admin-token")?.value;
   const JWT_SECRET = process.env.JWT_SECRET;
 
   if (!token || !JWT_SECRET) return null;
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
-    if (decoded.role !== 'admin') return null;
+    if (decoded.role !== "admin") return null;
     return decoded;
   } catch (error) {
-    console.error('Admin Auth Error:', error);
+    console.error("Admin Auth Error:", error);
     return null;
   }
 }
@@ -35,11 +35,11 @@ export default async function AdminLayout({
 
   // Redirect to login if not authenticated
   if (!admin) {
-    redirect('/admin/login');
+    redirect("/admin/login");
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-white">
       {/* Sidebar */}
       <aside className="w-64 bg-purple-900 text-white">
         <div className="p-6">
@@ -47,7 +47,7 @@ export default async function AdminLayout({
             <Shield className="w-8 h-8" />
             <h1 className="text-xl font-bold">Admin Panel</h1>
           </div>
-          
+
           <nav className="space-y-2">
             <Link
               href="/admin/dashboard"
@@ -91,9 +91,7 @@ export default async function AdminLayout({
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-8">
-          {children}
-        </main>
+        <main className="flex-1 p-8 bg-white">{children}</main>
       </div>
     </div>
   );

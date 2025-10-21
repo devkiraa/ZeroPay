@@ -162,7 +162,7 @@ export default function DashboardClient({
             <DollarSign className="w-5 h-5 text-text-light-secondary" />
           </div>
           <p className="text-3xl font-bold text-text-light-primary">
-            ${analytics.totalRevenue.toFixed(2)}
+            ₹{analytics.totalRevenue.toFixed(2)}
           </p>
         </div>
         {/* Card 2: Success Rate */}

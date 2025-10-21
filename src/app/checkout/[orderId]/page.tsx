@@ -1,23 +1,20 @@
-'use client'; // This is a Client Component
+"use client"; // This is a Client Component
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import {
-  CreditCard,
-  Building,
-  Loader2,
-  XCircle,
-} from 'lucide-react';
-import { QRCodeCanvas } from 'qrcode.react';
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { CreditCard, Building, Loader2, XCircle } from "lucide-react";
+import { QRCodeCanvas } from "qrcode.react";
+import { CheckoutSkeleton } from "@/components/SkeletonLoaders";
 
-type TransactionStatus = 'pending' | 'success' | 'failed' | 'loading';
-type PaymentMethod = 'card' | 'upi';
+type TransactionStatus = "pending" | "success" | "failed" | "loading";
+type PaymentMethod = "card" | "upi" | "wallet" | "netbanking";
 
 export default function CheckoutPage() {
-  const [method, setMethod] = useState<PaymentMethod>('card');
+  const [method, setMethod] = useState<PaymentMethod>("card");
   const [amount, setAmount] = useState<number | null>(null);
-  const [status, setStatus] = useState<TransactionStatus>('loading');
+  const [status, setStatus] = useState<TransactionStatus>("loading");
   const [error, setError] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const router = useRouter();
   const params = useParams();
@@ -29,88 +26,87 @@ export default function CheckoutPage() {
       const fetchTransaction = async () => {
         try {
           const res = await fetch(`/api/payment/status/${orderId}`);
-          if (!res.ok) throw new Error('Failed to fetch order status');
+          if (!res.ok) throw new Error("Failed to fetch order status");
           const data = await res.json();
 
           if (data.success) {
-            if (data.data.status !== 'pending') {
-              setError('This payment is already complete.');
-              setStatus('failed');
+            if (data.data.status !== "pending") {
+              setError("This payment is already complete.");
+              setStatus("failed");
             } else {
               setAmount(data.data.amount);
-              setStatus('pending');
+              setStatus("pending");
             }
           } else {
-            throw new Error(data.message || 'Error fetching transaction');
+            throw new Error(data.message || "Error fetching transaction");
           }
         } catch (err) {
           setError(
-            err instanceof Error ? err.message : 'An unknown error occurred'
+            err instanceof Error ? err.message : "An unknown error occurred"
           );
-          setStatus('failed');
+          setStatus("failed");
         }
       };
       fetchTransaction();
     }
   }, [orderId]);
 
+  // Show skeleton while loading
+  if (status === "loading") {
+    return <CheckoutSkeleton />;
+  }
+
   // 2. Handle the "Pay Now" button click
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus('loading'); // Show spinner
+    setIsProcessing(true); // Show spinner
 
     // Simulate payment processing time
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     // Call our verification API
     try {
-      const res = await fetch('/api/payment/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/payment/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ orderId }),
       });
 
       const data = await res.json();
 
-      if (data.success && data.status === 'success') {
-        setStatus('success');
+      if (data.success && data.status === "success") {
+        setStatus("success");
+        setIsProcessing(false);
         // Redirect to success page
         router.push(`/checkout/success/${orderId}`);
       } else {
-        setStatus('failed');
+        setStatus("failed");
+        setIsProcessing(false);
         // Redirect to failed page
         router.push(`/checkout/failed/${orderId}`);
       }
     } catch {
-      setStatus('failed');
+      setStatus("failed");
+      setIsProcessing(false);
       router.push(`/checkout/failed/${orderId}`);
     }
   };
 
   // --- Render Functions for UI states ---
 
-  // Loading spinner while fetching amount
-  if (status === 'loading' && amount === null) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <Loader2 className="w-12 h-12 animate-spin text-accent" />
-      </div>
-    );
-  }
-
   // Error state (e.g., order not found or already paid)
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="flex items-center justify-center min-h-screen bg-white">
         <div className="p-8 text-center bg-white rounded-2xl shadow-lg border border-gray-200">
           <XCircle className="w-16 h-16 mx-auto text-status-error" />
           <h2 className="mt-4 text-2xl font-bold text-gray-900">
             Payment Error
           </h2>
-          <p className="mt-2 text-gray-700">{error}</p>
+          <p className="mt-2 text-gray-600">{error}</p>
           <button
-            onClick={() => router.push('/')}
-            className="mt-6 px-4 py-2 font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+            onClick={() => router.push("/")}
+            className="mt-6 px-4 py-2 font-medium text-white bg-accent rounded-lg hover:bg-emerald-400 transition-colors"
           >
             Go Home
           </button>
@@ -121,7 +117,7 @@ export default function CheckoutPage() {
 
   // Main Payment UI
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
+    <div className="flex items-center justify-center min-h-screen bg-white">
       <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
         <h2 className="text-xl font-semibold text-center text-gray-900">
           ZeroPay Checkout
@@ -129,37 +125,57 @@ export default function CheckoutPage() {
         <p className="mt-2 text-4xl font-bold text-center text-gray-900">
           ₹{amount?.toFixed(2)}
         </p>
-        <p className="mt-1 text-sm text-center text-gray-700">
+        <p className="mt-1 text-sm text-center text-gray-600">
           Order ID: {orderId.substring(0, 18)}...
         </p>
 
         {/* Tabs */}
-        <div className="grid grid-cols-2 gap-2 p-1 mt-6 bg-gray-100 rounded-lg">
+        <div className="grid grid-cols-4 gap-2 p-1 mt-6 bg-gray-100 rounded-lg">
           <button
-            onClick={() => setMethod('card')}
+            onClick={() => setMethod("card")}
             className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-              method === 'card'
-                ? 'bg-white shadow-sm text-gray-900'
-                : 'text-gray-700 hover:bg-gray-200'
+              method === "card"
+                ? "bg-white shadow-sm text-gray-900"
+                : "text-gray-700 hover:bg-gray-200"
             }`}
           >
             Card
           </button>
           <button
-            onClick={() => setMethod('upi')}
+            onClick={() => setMethod("upi")}
             className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-              method === 'upi'
-                ? 'bg-white shadow-sm text-gray-900'
-                : 'text-gray-700 hover:bg-gray-200'
+              method === "upi"
+                ? "bg-white shadow-sm text-gray-900"
+                : "text-gray-700 hover:bg-gray-200"
             }`}
           >
-            UPI / Wallet
+            UPI
+          </button>
+          <button
+            onClick={() => setMethod("wallet")}
+            className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+              method === "wallet"
+                ? "bg-white shadow-sm text-gray-900"
+                : "text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            Wallet
+          </button>
+          <button
+            onClick={() => setMethod("netbanking")}
+            className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+              method === "netbanking"
+                ? "bg-white shadow-sm text-gray-900"
+                : "text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            Net Banking
           </button>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          {method === 'card' && (
+          {method === "card" && (
             <>
               {/* Card Details */}
               <div>
@@ -215,7 +231,7 @@ export default function CheckoutPage() {
             </>
           )}
 
-          {method === 'upi' && (
+          {method === "upi" && (
             <div className="space-y-4">
               {/* QR Code */}
               <div className="flex flex-col items-center py-4">
@@ -234,14 +250,12 @@ export default function CheckoutPage() {
                   Scan with any UPI app
                 </p>
               </div>
-
               {/* Divider */}
               <div className="flex items-center gap-4">
                 <div className="flex-1 h-px bg-gray-300"></div>
                 <span className="text-sm text-gray-500">OR</span>
                 <div className="flex-1 h-px bg-gray-300"></div>
               </div>
-
               {/* UPI Details */}
               <label
                 htmlFor="upi-id"
@@ -262,14 +276,79 @@ export default function CheckoutPage() {
             </div>
           )}
 
+          {method === "wallet" && (
+            <div className="space-y-4">
+              <label
+                htmlFor="wallet-select"
+                className="block mb-1 text-sm font-medium text-gray-900"
+              >
+                Select Wallet
+              </label>
+              <select
+                id="wallet-select"
+                className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-accent"
+              >
+                <option value="paytm">Paytm</option>
+                <option value="phonepe">PhonePe</option>
+                <option value="googlepay">Google Pay</option>
+                <option value="amazonpay">Amazon Pay</option>
+              </select>
+              <label
+                htmlFor="wallet-id"
+                className="block mb-1 text-sm font-medium text-gray-900"
+              >
+                Wallet ID / Mobile Number
+              </label>
+              <input
+                id="wallet-id"
+                type="text"
+                required
+                className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent"
+              />
+            </div>
+          )}
+
+          {method === "netbanking" && (
+            <div className="space-y-4">
+              <label
+                htmlFor="bank-select"
+                className="block mb-1 text-sm font-medium text-gray-900"
+              >
+                Select Bank
+              </label>
+              <select
+                id="bank-select"
+                className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-accent"
+              >
+                <option value="hdfc">HDFC Bank</option>
+                <option value="icici">ICICI Bank</option>
+                <option value="sbi">State Bank of India</option>
+                <option value="axis">Axis Bank</option>
+                <option value="kotak">Kotak Mahindra Bank</option>
+              </select>
+              <label
+                htmlFor="account-number"
+                className="block mb-1 text-sm font-medium text-gray-900"
+              >
+                Account Number
+              </label>
+              <input
+                id="account-number"
+                type="text"
+                required
+                className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent"
+              />
+            </div>
+          )}
+
           {/* Pay Button */}
           <div className="pt-2">
             <button
               type="submit"
-              disabled={status === 'loading'}
+              disabled={isProcessing}
               className="w-full px-4 py-3 font-medium text-white bg-accent rounded-lg shadow-md transition-all duration-300 hover:bg-emerald-400 active:scale-95 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              {status === 'loading' ? (
+              {isProcessing ? (
                 <Loader2 className="w-6 h-6 mx-auto animate-spin" />
               ) : (
                 `Pay ₹${amount?.toFixed(2)}`

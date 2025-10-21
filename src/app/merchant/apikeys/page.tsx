@@ -1,10 +1,12 @@
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
-import jwt, { JwtPayload } from 'jsonwebtoken';
-import dbConnect from '@/lib/dbConnect';
-import Merchant from '@/models/Merchant';
-import ApiKeysClient from '@/components/ApiKeysClient';
-import { ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies'; // Import type
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import dbConnect from "@/lib/dbConnect";
+import Merchant from "@/models/Merchant";
+import ApiKeysClient from "@/components/ApiKeysClient";
+import { ApiKeysSkeleton } from "@/components/SkeletonLoaders";
+import { Suspense } from "react";
+import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies"; // Import type
 
 interface TokenPayload extends JwtPayload {
   id: string;
@@ -14,7 +16,7 @@ interface TokenPayload extends JwtPayload {
 // The helper function now *accepts* the cookieStore as an argument
 async function getMerchantKeys(cookieStore: ReadonlyRequestCookies) {
   // --- END FIX ---
-  const token = cookieStore.get('token')?.value;
+  const token = cookieStore.get("token")?.value;
   const JWT_SECRET = process.env.JWT_SECRET;
 
   if (!token || !JWT_SECRET) return null;
@@ -23,8 +25,9 @@ async function getMerchantKeys(cookieStore: ReadonlyRequestCookies) {
     const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
     await dbConnect();
 
-    const merchant = await Merchant.findById(decoded.id)
-      .select('publicKey secretKey');
+    const merchant = await Merchant.findById(decoded.id).select(
+      "publicKey secretKey"
+    );
 
     if (!merchant) return null;
 
@@ -33,7 +36,7 @@ async function getMerchantKeys(cookieStore: ReadonlyRequestCookies) {
       secretKey: merchant.secretKey,
     };
   } catch (error) {
-    console.error('Auth Error:', error);
+    console.error("Auth Error:", error);
     return null;
   }
 }
@@ -49,14 +52,16 @@ export default async function ApiKeysPage() {
 
   // 1. Auth check (runs on server)
   if (!data) {
-    redirect('/merchant/login');
+    redirect("/merchant/login");
   }
 
   // 2. Render the Client Component and pass the server data as props
   return (
-    <ApiKeysClient
-      initialPublicKey={data.publicKey}
-      initialSecretKey={data.secretKey}
-    />
+    <Suspense fallback={<ApiKeysSkeleton />}>
+      <ApiKeysClient
+        initialPublicKey={data.publicKey}
+        initialSecretKey={data.secretKey}
+      />
+    </Suspense>
   );
 }

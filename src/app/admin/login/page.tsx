@@ -1,50 +1,50 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Shield, Mail, Lock, Loader2 } from 'lucide-react';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Shield, Mail, Lock, Loader2 } from "lucide-react";
 
 export default function AdminLoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
-      const res = await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
 
       if (res.ok && data.success) {
-        router.push('/admin/dashboard');
+        router.push("/admin/dashboard");
       } else {
-        setError(data.message || 'Invalid credentials');
+        setError(data.message || "Invalid credentials");
       }
     } catch (err) {
-      setError('An unexpected error occurred');
-      console.error('Login error:', err);
+      setError("An unexpected error occurred");
+      console.error("Login error:", err);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
+    <div className="flex items-center justify-center min-h-screen bg-white">
       <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
         <div className="flex items-center justify-center w-16 h-16 mx-auto mb-6 bg-purple-100 rounded-full">
           <Shield className="w-8 h-8 text-purple-600" />
         </div>
-        
+
         <h1 className="text-2xl font-bold text-center text-gray-900 mb-2">
           Admin Login
         </h1>
@@ -60,7 +60,10 @@ export default function AdminLoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block mb-1 text-sm font-medium text-gray-900">
+            <label
+              htmlFor="email"
+              className="block mb-1 text-sm font-medium text-gray-900"
+            >
               Email
             </label>
             <div className="relative">
@@ -78,7 +81,10 @@ export default function AdminLoginPage() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block mb-1 text-sm font-medium text-gray-900">
+            <label
+              htmlFor="password"
+              className="block mb-1 text-sm font-medium text-gray-900"
+            >
               Password
             </label>
             <div className="relative">
@@ -103,7 +109,7 @@ export default function AdminLoginPage() {
             {loading ? (
               <Loader2 className="w-6 h-6 mx-auto animate-spin" />
             ) : (
-              'Sign In'
+              "Sign In"
             )}
           </button>
         </form>

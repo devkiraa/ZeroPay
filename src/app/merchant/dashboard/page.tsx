@@ -1,11 +1,13 @@
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
-import jwt, { JwtPayload } from 'jsonwebtoken';
-import dbConnect from '@/lib/dbConnect';
-import Merchant from '@/models/Merchant';
-import Transaction from '@/models/Transaction';
-import DashboardClient from '@/components/DashboardClient';
-import { ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies'; // Import type
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import dbConnect from "@/lib/dbConnect";
+import Merchant from "@/models/Merchant";
+import Transaction from "@/models/Transaction";
+import DashboardClient from "@/components/DashboardClient";
+import { DashboardSkeleton } from "@/components/SkeletonLoaders";
+import { Suspense } from "react";
+import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies"; // Import type
 
 interface TokenPayload extends JwtPayload {
   id: string;
@@ -15,7 +17,7 @@ interface TokenPayload extends JwtPayload {
 // The helper function now *accepts* the cookieStore as an argument
 async function getMerchantData(cookieStore: ReadonlyRequestCookies) {
   // --- END FIX ---
-  const token = cookieStore.get('token')?.value;
+  const token = cookieStore.get("token")?.value;
   const JWT_SECRET = process.env.JWT_SECRET;
 
   if (!token || !JWT_SECRET) return null;
@@ -23,8 +25,9 @@ async function getMerchantData(cookieStore: ReadonlyRequestCookies) {
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
     await dbConnect();
-    const merchant = await Merchant.findById(decoded.id)
-      .select('-passwordHash');
+    const merchant = await Merchant.findById(decoded.id).select(
+      "-passwordHash"
+    );
 
     if (!merchant) return null;
 
@@ -33,7 +36,7 @@ async function getMerchantData(cookieStore: ReadonlyRequestCookies) {
       .limit(10);
 
     const totalRevenue = transactions
-      .filter((tx) => tx.status === 'success')
+      .filter((tx) => tx.status === "success")
       .reduce((acc, tx) => acc + tx.amount, 0);
 
     return {
@@ -46,7 +49,7 @@ async function getMerchantData(cookieStore: ReadonlyRequestCookies) {
       },
     };
   } catch (error) {
-    console.error('Auth Error:', error);
+    console.error("Auth Error:", error);
     return null;
   }
 }
@@ -62,15 +65,17 @@ export default async function DashboardPage() {
 
   // 1. Auth check (runs on server)
   if (!data) {
-    redirect('/merchant/login');
+    redirect("/merchant/login");
   }
 
   // 2. Render the Client Component and pass the server data as props
   return (
-    <DashboardClient
-      merchant={data.merchant}
-      transactions={data.transactions}
-      analytics={data.analytics}
-    />
+    <Suspense fallback={<DashboardSkeleton />}>
+      <DashboardClient
+        merchant={data.merchant}
+        transactions={data.transactions}
+        analytics={data.analytics}
+      />
+    </Suspense>
   );
 }
