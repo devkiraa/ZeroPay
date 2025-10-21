@@ -116,7 +116,9 @@ export default function AnalyticsPage() {
           <div className="flex items-center justify-between mb-2">
             <Activity className="w-8 h-8 text-blue-600" />
           </div>
-          <p className="text-sm text-text-light-secondary">Total Transactions</p>
+          <p className="text-sm text-text-light-secondary">
+            Total Transactions
+          </p>
           <p className="text-3xl font-bold text-text-light-primary">
             {analytics.totalTransactions}
           </p>
