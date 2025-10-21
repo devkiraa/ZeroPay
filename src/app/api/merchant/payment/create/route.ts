@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
         {
           success: false,
           message: 'Invalid payment data',
-          errors: error.errors.map((e) => e.message),
+          errors: error.issues.map((e) => e.message),
         },
         { status: 400 }
       );

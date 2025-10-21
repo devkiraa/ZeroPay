@@ -1,10 +1,12 @@
 'use client'; // This is the Client Component
 
+import { useState, useEffect, useCallback } from 'react';
 import {
   DollarSign,
   Percent,
   ArrowRightLeft,
   CheckCircle,
+  Radio,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -91,11 +93,64 @@ function DashboardChart() {
 
 // This is our main Client Component (Light Theme)
 export default function DashboardClient({
-  transactions,
+  transactions: initialTransactions,
   analytics,
 }: DashboardClientProps) {
+  const [transactions, setTransactions] = useState<ITransaction[]>(initialTransactions);
+  const [isPolling, setIsPolling] = useState(true);
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+
+  // Function to fetch new transactions
+  const fetchNewTransactions = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/merchant/dashboard/updates?since=${lastUpdate.toISOString()}`);
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.data.length > 0) {
+          // Prepend new transactions to the list
+          setTransactions(prev => {
+            const existingTxIds = new Set(prev.map(tx => tx.orderId));
+            const uniqueNewTx = data.data.filter((tx: ITransaction) => !existingTxIds.has(tx.orderId));
+            return [...uniqueNewTx, ...prev].slice(0, 10); // Keep only 10 most recent
+          });
+          setLastUpdate(new Date());
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch new transactions:', error);
+    }
+  }, [lastUpdate]);
+
+  // Set up polling every 5 seconds
+  useEffect(() => {
+    if (!isPolling) return;
+
+    const interval = setInterval(() => {
+      fetchNewTransactions();
+    }, 5000); // Poll every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [isPolling, fetchNewTransactions]);
+
   return (
     <div className="space-y-6">
+      {/* Real-time indicator */}
+      <div className="flex items-center justify-between p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+        <div className="flex items-center gap-2">
+          <Radio className={`w-4 h-4 ${isPolling ? 'text-emerald-600 animate-pulse' : 'text-gray-400'}`} />
+          <span className="text-sm font-medium text-emerald-900">
+            {isPolling ? 'Live Updates Active' : 'Live Updates Paused'}
+          </span>
+        </div>
+        <button
+          onClick={() => setIsPolling(!isPolling)}
+          className="px-3 py-1 text-xs font-medium text-emerald-700 bg-white border border-emerald-300 rounded-lg hover:bg-emerald-50 transition-colors"
+        >
+          {isPolling ? 'Pause' : 'Resume'}
+        </button>
+      </div>
+
       {/* 1. Summary Cards */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         {/* Card 1: Total Revenue */}

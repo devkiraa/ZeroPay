@@ -10,8 +10,12 @@ interface TokenPayload extends JwtPayload {
   id: string;
 }
 
-// Server-side data fetching function
-async function getMerchantTransactions(cookieStore: ReadonlyRequestCookies) {
+interface PageProps {
+  searchParams: Promise<{ page?: string }>;
+}
+
+// Server-side data fetching function with pagination
+async function getMerchantTransactions(cookieStore: ReadonlyRequestCookies, page: number = 1) {
   const token = cookieStore.get('token')?.value;
   const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -21,18 +25,27 @@ async function getMerchantTransactions(cookieStore: ReadonlyRequestCookies) {
     const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
     await dbConnect();
 
-    // Fetch all transactions for this merchant, newest first
-    // --- THIS IS THE CORRECTED BLOCK ---
+    const perPage = 20;
+    const skip = (page - 1) * perPage;
+
+    // Get total count for pagination
+    const totalTransactions = await Transaction.countDocuments({ merchantId: decoded.id });
+    const totalPages = Math.ceil(totalTransactions / perPage);
+
+    // Fetch paginated transactions for this merchant, newest first
     const transactions = await Transaction.find({ merchantId: decoded.id })
       .sort({ createdAt: -1 })
-      .lean(); // Use .lean()
-    // --- END CORRECTION --- (Removed duplicated code)
+      .limit(perPage)
+      .skip(skip);
 
     if (!transactions) return null;
 
     // Return as plain objects
     return {
       transactions: JSON.parse(JSON.stringify(transactions)),
+      currentPage: page,
+      totalPages,
+      totalTransactions,
     };
   } catch (error) {
     console.error('Auth Error:', error);
@@ -41,9 +54,11 @@ async function getMerchantTransactions(cookieStore: ReadonlyRequestCookies) {
 }
 
 // Main Page (Server Component)
-export default async function TransactionsPage() {
-  const cookieStore = cookies();
-  const data = await getMerchantTransactions(cookieStore);
+export default async function TransactionsPage({ searchParams }: PageProps) {
+  const cookieStore = await cookies();
+  const params = await searchParams;
+  const page = parseInt(params.page || '1', 10);
+  const data = await getMerchantTransactions(cookieStore, page);
 
   // 1. Auth check (runs on server)
   if (!data) {
@@ -51,5 +66,12 @@ export default async function TransactionsPage() {
   }
 
   // 2. Render the Client Component and pass the server data as props
-  return <TransactionsClient transactions={data.transactions} />;
+  return (
+    <TransactionsClient
+      transactions={data.transactions}
+      currentPage={data.currentPage}
+      totalPages={data.totalPages}
+      totalTransactions={data.totalTransactions}
+    />
+  );
 }

@@ -22,8 +22,7 @@ async function getMerchantWebhooks(cookieStore: ReadonlyRequestCookies) {
     await dbConnect();
 
     const webhooks = await Webhook.find({ merchantId: decoded.id })
-      .sort({ createdAt: -1 })
-      .lean();
+      .sort({ createdAt: -1 });
 
     return {
       webhooks: JSON.parse(JSON.stringify(webhooks)),
@@ -36,7 +35,7 @@ async function getMerchantWebhooks(cookieStore: ReadonlyRequestCookies) {
 
 // Main Page (Server Component)
 export default async function WebhooksPage() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const data = await getMerchantWebhooks(cookieStore);
 
   if (!data) {

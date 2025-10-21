@@ -3,24 +3,20 @@ import { cookies } from 'next/headers';
 
 export async function GET() {
   try {
-    // Get the cookie store
     const cookieStore = await cookies();
 
-    // Delete the 'token' cookie by setting its value to empty and maxAge to 0
-    cookieStore.set('token', '', {
+    // Delete the 'admin-token' cookie
+    cookieStore.set('admin-token', '', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      expires: new Date(0), // Set expiration to a date in the past
+      expires: new Date(0),
       path: '/',
     });
 
-    return NextResponse.json(
-      { success: true, message: 'Logged out successfully' },
-      { status: 200 }
-    );
+    return NextResponse.redirect(new URL('/admin/login', process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'));
   } catch (error) {
-    console.error('Logout Error:', error);
+    console.error('Admin Logout Error:', error);
     return NextResponse.json(
       { success: false, message: 'An unexpected error occurred' },
       { status: 500 }

@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
   try {
     // 3. Connect to DB and validate the key
     await dbConnect();
-    const merchant = await Merchant.findOne({ secretKey: secretKey }).lean();
+    const merchant = await Merchant.findOne({ secretKey: secretKey }).select('_id');
 
     if (!merchant) {
       return NextResponse.json(

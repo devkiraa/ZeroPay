@@ -22,8 +22,7 @@ async function getMerchantProfile(cookieStore: ReadonlyRequestCookies) {
     await dbConnect();
 
     const merchant = await Merchant.findById(decoded.id)
-      .select('name email')
-      .lean();
+      .select('name email');
 
     if (!merchant) return null;
 
@@ -38,7 +37,7 @@ async function getMerchantProfile(cookieStore: ReadonlyRequestCookies) {
 
 // Main Page (Server Component)
 export default async function ProfilePage() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const data = await getMerchantProfile(cookieStore);
 
   if (!data) {

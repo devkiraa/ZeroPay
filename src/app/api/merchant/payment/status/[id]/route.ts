@@ -6,13 +6,13 @@ import Transaction from '@/models/Transaction';
 // when using dynamic route segments.
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   await dbConnect();
 
   try {
     // 1. Get the orderId from the URL
-    const orderId = params.id;
+    const { id: orderId } = await params;
 
     if (!orderId) {
       return NextResponse.json(

@@ -51,6 +51,21 @@ export async function POST(request: NextRequest) {
     // 5. Save the updated transaction
     await transaction.save();
 
+    // 6. Send payment success email (non-blocking, only if successful)
+    if (isSuccess) {
+      const { sendEmail, getPaymentSuccessEmailContent } = await import('@/lib/sendEmail');
+      const emailContent = getPaymentSuccessEmailContent(
+        transaction.orderId,
+        transaction.amount,
+        transaction.currency,
+        transaction.customerEmail
+      );
+      sendEmail({
+        to: transaction.customerEmail,
+        ...emailContent,
+      }).catch((error) => console.error('Failed to send payment success email:', error));
+    }
+
     return NextResponse.json(
       {
         success: true,
@@ -63,7 +78,7 @@ export async function POST(request: NextRequest) {
     console.error('Verify Payment Error:', error);
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { success: false, message: 'Invalid data', errors: error.errors },
+        { success: false, message: 'Invalid data', errors: error.issues },
         { status: 400 }
       );
     }

@@ -37,6 +37,14 @@ export async function POST(request: NextRequest) {
 
     const savedMerchant = await newMerchant.save();
 
+    // Send welcome email (non-blocking)
+    const { sendEmail, getWelcomeEmailContent } = await import('@/lib/sendEmail');
+    const emailContent = getWelcomeEmailContent(savedMerchant.name, savedMerchant.publicKey);
+    sendEmail({
+      to: savedMerchant.email,
+      ...emailContent,
+    }).catch((error) => console.error('Failed to send welcome email:', error));
+
     return NextResponse.json(
       {
         success: true,
@@ -58,7 +66,7 @@ export async function POST(request: NextRequest) {
         {
           success: false,
           message: 'Invalid input',
-          errors: error.errors.map((e) => e.message),
+          errors: error.issues.map((e) => e.message),
         },
         { status: 400 }
       );
